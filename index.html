@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Rate Us</title>
+    <!-- Importing Montserrat as a high-quality fallback for Akira -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@900&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-color: #0500C8; 
+            --text-color: #ffffff;
+            --cyber-pink: #ff00ff;
+            --cyber-cyan: #00ffff;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100dvh; 
+            font-family: 'Akira Expanded', 'Montserrat', sans-serif; 
+            overflow-x: hidden;
+            overflow-y: auto; 
+            -webkit-tap-highlight-color: transparent;
+            position: relative;
+        }
+
+        /* --- PRELOADER STYLES --- */
+        #loader {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            transition: opacity 0.6s ease, visibility 0.6s;
+        }
+
+        .loader-logo {
+            width: 156px; 
+            height: auto;
+            animation: pulse-glow 2s infinite ease-in-out;
+            filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.3));
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { 
+                transform: scale(1); 
+                filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.2));
+                opacity: 0.7;
+            }
+            50% { 
+                transform: scale(1.05); 
+                filter: drop-shadow(0 0 20px rgba(0, 255, 255, 0.6));
+                opacity: 1;
+            }
+        }
+
+        .container {
+            text-align: center;
+            width: 100%;
+            max-width: 600px; 
+            padding: 1.5rem;
+            box-sizing: border-box; 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.8s ease, transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+            position: relative;
+            z-index: 2;
+        }
+
+        body.loaded .container {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* --- STACKED IMAGE WRAPPER --- */
+        .logo-wrapper {
+            position: relative;
+            display: inline-block;
+            cursor: zoom-in; 
+            margin-bottom: 4rem; 
+            perspective: 1000px; 
+            touch-action: manipulation;
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        body.loaded .logo-wrapper {
+            animation: fadeInUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+            animation-delay: 0.1s;
+        }
+
+        .logo-wrapper img {
+            max-width: 100%;
+            height: auto;
+            max-height: 40vh;
+            display: block;
+            border-radius: 4px; 
+            transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+            -webkit-user-drag: none;
+            user-select: none;
+        }
+
+        .stack-layer {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 0;
+            filter: brightness(0.6) opacity(0.8); 
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        }
+
+        .layer-1 { transform: rotate(-6deg) translate(-10px, 5px); }
+        .layer-2 { transform: rotate(4deg) translate(8px, 8px); }
+
+        .logo-display {
+            position: relative;
+            z-index: 10;
+            transform: rotate(-2deg); 
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5));
+        }
+
+        .logo-wrapper:hover .logo-display,
+        .logo-wrapper:active .logo-display {
+            transform: translateY(-20px) rotate(0deg) scale(1.05);
+            filter: drop-shadow(0 20px 20px rgba(0,0,0,0.6));
+        }
+
+        .logo-wrapper:hover .layer-1, .logo-wrapper:active .layer-1 {
+            transform: rotate(-8deg) translate(-15px, 10px);
+        }
+        .logo-wrapper:hover .layer-2, .logo-wrapper:active .layer-2 {
+            transform: rotate(6deg) translate(12px, 12px);
+        }
+
+        /* --- LIGHTBOX --- */
+        .lightbox {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #000000; /* Full solid black background */
+            z-index: 9999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease;
+        }
+
+        .lightbox.active { opacity: 1; pointer-events: all; }
+
+        .lightbox img {
+            max-width: 80vw; 
+            max-height: 70vh; 
+            object-fit: contain;
+            border: none;
+            transform: scale(0.9); 
+            filter: blur(10px); 
+            transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            /* Subtle shadow in corners */
+            box-shadow: 0 0 0 rgba(255, 255, 255, 0); 
+        }
+
+        .lightbox.active img {
+            transform: scale(1.25); /* 25% larger than base scale */
+            filter: blur(0px);
+            /* Subtle white glow from corners */
+            box-shadow: 0 0 35px rgba(255, 255, 255, 0.15);
+        }
+
+        .close-hint {
+            position: absolute;
+            top: 20px; right: 25px;
+            color: white; font-size: 3rem;
+            cursor: pointer; padding: 10px; z-index: 100;
+        }
+
+        /* --- BUTTON --- */
+        .btn-anim-wrapper {
+            display: inline-block;
+            width: 100%; 
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        body.loaded .btn-anim-wrapper {
+            animation: fadeInUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+            animation-delay: 0.3s; 
+        }
+
+        .rating-btn {
+            position: relative;
+            display: inline-flex; 
+            justify-content: center;
+            align-items: center;
+            min-width: 220px;
+            text-decoration: none;
+            padding: 1.5rem 2rem;
+            font-size: 1.1rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #000;
+            background: #ffffff;
+            border-radius: 4px;
+            overflow: hidden; 
+            transition: transform 0.1s ease;
+        }
+
+        .rating-btn::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -150%; width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent);
+            transform: skewX(-20deg);
+            animation: sheen 3s infinite ease-in-out;
+        }
+
+        .rating-btn:active { transform: scale(0.96); background: #f0f0f0; }
+
+        @keyframes sheen {
+            0% { left: -150%; }
+            20% { left: 150%; }
+            100% { left: 150%; }
+        }
+
+        @keyframes fadeInUp {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Mobile */
+        @media (max-width: 600px) {
+            .logo-wrapper { margin-bottom: 3rem; }
+            .logo-wrapper img { max-height: 35vh; }
+            .rating-btn { width: 100%; box-sizing: border-box; }
+            .close-hint { background: rgba(0,0,0,0.5); border-radius: 50%; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Loading Screen with Glowing Logo -->
+    <div id="loader">
+        <img src="https://i.ibb.co/JRmbCRB9/IMG-6299.png" alt="Loading..." class="loader-logo">
+    </div>
+
+    <div class="container">
+        <!-- Image Stack -->
+        <div class="logo-wrapper" onclick="toggleLightbox(true)">
+            <img src="https://i.ibb.co/7tYvN8mv/Logo-web-site.png" class="stack-layer layer-1" alt="">
+            <img src="https://i.ibb.co/7tYvN8mv/Logo-web-site.png" class="stack-layer layer-2" alt="">
+            <img id="main-img" src="https://i.ibb.co/7tYvN8mv/Logo-web-site.png" alt="Company Logo" class="logo-display">
+        </div>
+        
+        <div class="btn-anim-wrapper">
+            <a href="https://www.google.com/maps/place/HUMANPARK./@52.2334789,21.0146812,17z/data=!3m1!4b1!4m6!3m5!1s0x471ecd9cc25fcd8d:0xb445494d51d5226a!8m2!3d52.2334789!4d21.0172561!16s%2Fg%2F11f_v6m7p7?entry=ttu" target="_blank" class="rating-btn">
+                <span class="btn-text">SEND SOME LOVE ✦</span>
+            </a>
+        </div>
+    </div>
+
+    <div id="lightbox" class="lightbox" onclick="toggleLightbox(false)">
+        <span class="close-hint">&times;</span>
+        <img id="lightbox-img" src="" alt="Full Screen View">
+    </div>
+
+    <script>
+        const mainImg = document.getElementById('main-img');
+
+        function initApp() {
+            setTimeout(() => {
+                const loader = document.getElementById('loader');
+                loader.style.opacity = '0';
+                loader.style.visibility = 'hidden';
+                document.body.classList.add('loaded');
+            }, 800); 
+        }
+
+        if (mainImg.complete) {
+            initApp();
+        } else {
+            mainImg.addEventListener('load', initApp);
+            setTimeout(initApp, 3500); 
+        }
+
+        function toggleLightbox(show) {
+            const lightbox = document.getElementById('lightbox');
+            const lightboxImg = document.getElementById('lightbox-img');
+            if (show) {
+                document.body.style.overflow = 'hidden';
+                lightboxImg.src = mainImg.src;
+                lightbox.classList.add('active');
+            } else {
+                document.body.style.overflow = '';
+                lightbox.classList.remove('active');
+            }
+        }
+    </script>
+
+</body>
+</html>
