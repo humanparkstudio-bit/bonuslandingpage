@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Rate Us | HUMANPARK</title>
+    <!-- Importing Montserrat for high-quality body fallback -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-color: #0500C8; 
+            --text-color: #ffffff;
+            --cyber-pink: #ff00ff;
+            --cyber-cyan: #00ffff;
+            --instruction-accent: #0500C8; 
+            --transition-speed: 0.4s;
+            /* Windows XP Colors */
+            --xp-blue-dark: #0058e6;
+            --xp-blue-light: #08adff;
+            --xp-orange: #ff7000;
+            --xp-body: #ece9d8;
+            --xp-border: #003399;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100dvh; 
+            font-family: 'Akira Expanded', 'Montserrat', sans-serif; 
+            overflow-x: hidden;
+            overflow-y: auto; 
+            -webkit-tap-highlight-color: transparent;
+            position: relative;
+        }
+
+        /* --- CYBER OVERLAY --- */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%);
+            background-size: 100% 3px;
+            pointer-events: none;
+            z-index: 9998;
+            opacity: 0.4;
+        }
+
+        body::after {
+            content: "";
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+            opacity: 0.03;
+            pointer-events: none;
+            z-index: 9997;
+        }
+
+        /* --- PRELOADER --- */
+        #loader {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            transition: opacity 0.6s ease, visibility 0.6s;
+        }
+
+        .loader-logo {
+            width: 156px; 
+            height: auto;
+            animation: pulse-glow 2s infinite ease-in-out;
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { transform: scale(1); opacity: 0.7; }
+            50% { transform: scale(1.05); opacity: 1; }
+        }
+
+        .container {
+            text-align: center;
+            width: 100%;
+            max-width: 600px; 
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.8s ease, transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+            position: relative;
+            z-index: 2;
+        }
+
+        body.loaded .container { opacity: 1; transform: translateY(0); }
+
+        /* --- STACKED LOGO --- */
+        .logo-wrapper {
+            position: relative;
+            display: inline-block;
+            cursor: pointer; 
+            margin-bottom: 3rem; 
+            perspective: 1000px;
+            opacity: 0;
+            transform: translateY(30px);
+            user-select: none;
+        }
+
+        body.loaded .logo-wrapper {
+            animation: fadeInUp 0.8s forwards;
+            animation-delay: 0.1s;
+        }
+
+        .logo-wrapper img {
+            max-width: 100%;
+            height: auto;
+            max-height: 35vh;
+            display: block;
+            border-radius: 4px; 
+            transition: all var(--transition-speed) cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        .stack-layer {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 0;
+            filter: brightness(0.6) opacity(0.8); 
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        }
+
+        .layer-1 { transform: rotate(-6deg) translate(-10px, 5px); }
+        .layer-2 { transform: rotate(4deg) translate(8px, 8px); }
+
+        .logo-display {
+            position: relative;
+            z-index: 10;
+            transform: rotate(-2deg); 
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5));
+        }
+
+        .logo-wrapper:hover .logo-display,
+        .logo-wrapper:active .logo-display {
+            transform: translateY(-10px) rotate(0deg) scale(1.05);
+        }
+
+        /* --- LIGHTBOX --- */
+        .lightbox {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #000000;
+            z-index: 9999;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .lightbox.active { opacity: 1; pointer-events: all; }
+
+        .instructions-card {
+            width: 100%;
+            max-width: 800px;
+            padding: 3rem 1.5rem; 
+            text-align: center;
+            transform: translateY(20px);
+            transition: transform 0.5s ease;
+            box-sizing: border-box;
+        }
+
+        .lightbox.active .instructions-card {
+            transform: translateY(0);
+        }
+
+        .instructions-card h2 {
+            font-family: 'Akira Expanded', sans-serif;
+            font-weight: 900; 
+            text-transform: uppercase;
+            font-size: 1.6rem;
+            margin-bottom: 2rem; 
+            color: var(--text-color);
+            letter-spacing: 3px;
+        }
+
+        .instructions-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .instructions-list li {
+            margin-bottom: 1.5rem; 
+            line-height: 1.4;
+        }
+
+        .instructions-list li strong {
+            font-family: 'Akira Expanded', sans-serif;
+            font-weight: 900; 
+            display: block;
+            margin-bottom: 0.4rem; 
+            text-transform: uppercase;
+            font-size: 0.9rem; 
+            letter-spacing: 1.5px;
+            color: var(--instruction-accent); 
+        }
+
+        .instructions-list li .step-content {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.85);
+            font-family: 'Montserrat', sans-serif;
+            max-width: 500px;
+            margin: 0 auto;
+            letter-spacing: 0.2px;
+        }
+
+        /* --- WINDOW XP STYLE --- */
+        .xp-container {
+            margin: 2.5rem auto 1rem;
+            width: 100%;
+            max-width: 350px;
+            background: var(--xp-body);
+            border: 3px solid var(--xp-border);
+            border-radius: 8px 8px 0 0;
+            font-family: 'Tahoma', 'Segoe UI', sans-serif;
+            text-align: left;
+            color: #000;
+            box-shadow: 4px 4px 10px rgba(0,0,0,0.5);
+            overflow: hidden;
+            box-sizing: border-box;
+        }
+
+        .xp-title-bar {
+            background: linear-gradient(to bottom, var(--xp-blue-light) 0%, var(--xp-blue-dark) 100%);
+            color: white;
+            padding: 6px 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: bold;
+            font-size: 13px;
+            text-shadow: 1px 1px 1px rgba(0,0,0,0.5);
+            user-select: none;
+        }
+
+        .xp-close {
+            background: linear-gradient(to bottom, #e04343, #9e0000);
+            border: 1px solid #fff;
+            border-radius: 3px;
+            width: 21px;
+            height: 21px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            color: #fff;
+            cursor: pointer;
+            box-shadow: inset 1px 1px 2px rgba(255,255,255,0.4);
+        }
+
+        .xp-close:hover, .xp-close:active { filter: brightness(1.2); }
+
+        .xp-body {
+            padding: 15px 20px;
+            font-size: 13px;
+            line-height: 1.5;
+            color: #333;
+        }
+
+        .xp-body b { color: #000; font-weight: 700; }
+
+        .xp-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            padding: 0 20px 15px;
+        }
+
+        .xp-btn {
+            background: #f0f0f0;
+            border: 1px solid #003399;
+            border-radius: 3px;
+            padding: 5px 15px;
+            font-size: 12px;
+            cursor: pointer;
+            color: #000;
+            text-decoration: none;
+            box-shadow: inset 0 -4px 6px rgba(0,0,0,0.1);
+            transition: all 0.1s;
+            touch-action: manipulation;
+        }
+
+        .xp-btn:hover, .xp-btn:active {
+            background: #fff;
+            border-color: #ff8000;
+        }
+
+        .xp-btn-ok {
+            background: linear-gradient(to bottom, #fff 0%, #d6d6d6 100%);
+            border: 2px solid #003399;
+            font-weight: bold;
+        }
+
+        .close-hint {
+            position: fixed;
+            top: 10px; right: 15px;
+            color: white; font-size: 3rem;
+            cursor: pointer; z-index: 10000;
+            line-height: 1;
+            font-weight: 100;
+            padding: 10px;
+            touch-action: manipulation;
+        }
+
+        /* --- BUTTON --- */
+        .rating-btn {
+            position: relative;
+            display: inline-flex; 
+            padding: 1.25rem 2rem;
+            width: 100%;
+            max-width: 320px;
+            box-sizing: border-box;
+            justify-content: center;
+            font-family: 'Akira Expanded', sans-serif;
+            font-weight: 900;
+            font-size: 0.9rem;
+            letter-spacing: 2px;
+            color: #000;
+            background: #ffffff;
+            border-radius: 0; 
+            text-decoration: none;
+            overflow: hidden;
+            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), 
+                        background 0.3s ease, 
+                        box-shadow 0.3s ease;
+            z-index: 10;
+            touch-action: manipulation;
+        }
+
+        .rating-btn:hover {
+            transform: scale(1.03) translateY(-2px);
+            background: #f8f8f8;
+            box-shadow: 0 10px 20px rgba(255, 255, 255, 0.1);
+        }
+
+        .rating-btn::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -150%; width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.9), transparent);
+            transform: skewX(-20deg);
+            animation: sheen 4s infinite ease-in-out;
+        }
+
+        .rating-btn:active { 
+            transform: scale(0.97) translateY(0);
+            background: #e0e0e0;
+        }
+
+        @keyframes sheen {
+            0% { left: -150%; }
+            20% { left: 150%; }
+            100% { left: 150%; }
+        }
+
+        @keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
+
+        @media (min-width: 601px) {
+            .instructions-card h2 { font-size: 2rem; }
+            .instructions-list li { margin-bottom: 2rem; }
+            .instructions-list li strong { font-size: 1.1rem; }
+            .instructions-list li .step-content { font-size: 0.95rem; }
+            .logo-wrapper { margin-bottom: 4rem; }
+            .logo-wrapper img { max-height: 40vh; }
+            .rating-btn { width: auto; padding: 1.5rem 3.5rem; font-size: 1rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="loader">
+        <img src="https://i.ibb.co/JRmbCRB9/IMG-6299.png" alt="Loading..." class="loader-logo">
+    </div>
+
+    <div class="container">
+        <div class="logo-wrapper" onclick="toggleLightbox(true)">
+            <img src="https://i.ibb.co/7tYvN8mv/Logo-web-site.png" class="stack-layer layer-1" alt="">
+            <img src="https://i.ibb.co/7tYvN8mv/Logo-web-site.png" class="stack-layer layer-2" alt="">
+            <img id="main-img" src="https://i.ibb.co/7tYvN8mv/Logo-web-site.png" alt="Logo" class="logo-display">
+        </div>
+        
+        <a href="https://www.google.com/maps/place/HUMANPARK./@52.2334789,21.0146812,17z/data=!3m1!4b1!4m6!3m5!1s0x471ecd9cc25fcd8d:0xb445494d51d5226a!8m2!3d52.2334789!4d21.0172561!16s%2Fg%2F11f_v6m7p7?entry=ttu" target="_blank" class="rating-btn">
+            SEND SOME LOVE ✦
+        </a>
+    </div>
+
+    <!-- Instruction Page -->
+    <div id="lightbox" class="lightbox">
+        <span class="close-hint" onclick="toggleLightbox(false)" aria-label="Close">&times;</span>
+        <div class="instructions-card">
+            <h2>A CO ROBIĘ DALEJ?</h2>
+            <ul class="instructions-list">
+                <li>
+                    <strong>1. Second skin</strong>
+                    <div class="step-content">Po 24-72 godzinach zdejmij opatrunek. Rób to pod ciepłą bieżącą wodą, delikatnie odklejając krawędzie, aby nie uszkodzić skóry.</div>
+                </li>
+                <li>
+                    <strong>2. Pierwsze mycie</strong>
+                    <div class="step-content">Umyj tatuaż letnią wodą i łagodnym bezzapachowym mydłem (np. dla dzieci). Nie szoruj, tylko delikatnie spłucz i osusz papierowym ręcznikiem, przykładając go do skóry.</div>
+                </li>
+                <li>
+                    <strong>3. Nawilżanie</strong>
+                    <div class="step-content">Po wyschnięciu nałóż cienką warstwę specjalnego kremu lub spreju do tatuaży. Nie używaj tłustych maści ani perfumowanych balsamów.</div>
+                </li>
+                <li>
+                    <strong>4. Unikanie podrażnień</strong>
+                    <div class="step-content">Noś luźne ubrania, unikaj drapania i dotykania tatuażu brudnymi rękami. Nie zakrywaj go ponownie folią.</div>
+                </li>
+                <li>
+                    <strong>5. Ochrona przed wodą i słońcem</strong>
+                    <div class="step-content">Przez pierwsze dwa tygodnie unikaj długich kąpieli, basenu i sauny. Nie wystawiaj tatuażu na słońce – po zagojeniu używaj kremu z wysokim filtrem (SPF 50).</div>
+                </li>
+                <li>
+                    <strong>6. Unikanie strupków</strong>
+                    <div class="step-content">Tatuaż może lekko się łuszczyć. Nie skub skórek ani strupków, aby nie spowodować blaknięcia lub blizn.</div>
+                </li>
+                <li>
+                    <strong>7. Czas gojenia</strong>
+                    <div class="step-content">Pełne gojenie trwa około 3-4 tygodni. W tym czasie kontynuuj regularne mycie i nawilżanie.</div>
+                </li>
+                <li>
+                    <strong>8. Bądź na tapecie</strong>
+                    <div class="step-content">Koniecznie pochwal się wszystkim znajomym i nie zapomnij powiedzieć, że tak slay dziarę można zrobić w Humanpark.</div>
+                </li>
+            </ul>
+
+            <!-- Windows XP Style Notification -->
+            <div class="xp-container" onclick="event.stopPropagation()">
+                <div class="xp-title-bar">
+                    <span>Jak pielegnowac</span>
+                    <div class="xp-close" onclick="toggleLightbox(false)">×</div>
+                </div>
+                <div class="xp-body">
+                    <b>Love your tat</b><br>
+                    Postępuj zgodnie z instrukcją! W razie dodatkowych pytań zawsze możesz je zadać na insta
+                </div>
+                <div class="xp-actions">
+                    <button class="xp-btn xp-btn-ok" onclick="window.open('https://www.instagram.com/humanpark.studio/', '_blank')">Ok</button>
+                    <button class="xp-btn" onclick="toggleLightbox(false)">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const mainImg = document.getElementById('main-img');
+        const loader = document.getElementById('loader');
+
+        function initApp() {
+            setTimeout(() => {
+                loader.style.opacity = '0';
+                setTimeout(() => {
+                    loader.style.visibility = 'hidden';
+                    document.body.classList.add('loaded');
+                }, 600);
+            }, 500); 
+        }
+
+        if (mainImg.complete) {
+            initApp();
+        } else {
+            mainImg.addEventListener('load', initApp);
+            setTimeout(initApp, 3000); 
+        }
+
+        function toggleLightbox(show) {
+            const lightbox = document.getElementById('lightbox');
+            if (show) {
+                document.body.style.overflow = 'hidden';
+                lightbox.classList.add('active');
+                lightbox.scrollTop = 0; // Reset scroll position
+            } else {
+                document.body.style.overflow = '';
+                lightbox.classList.remove('active');
+            }
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') toggleLightbox(false);
+        });
+    </script>
+
+</body>
+</html>
